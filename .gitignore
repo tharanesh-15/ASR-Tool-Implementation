@@ -1,0 +1,89 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Model weights & Hugging Face download caches
+.cache/
+whisper_models/
+models/
+huggingface/
+*.bin
+*.pt
+*.safetensors
+
+# Temporary audio uploads and recordings
+temp_audio/
+temp/
+uploads/
+*.wav
+*.mp3
+*.m4a
+*.mp4
+*.mpeg
+*.webm
+*.ogg
+*.flac
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+*.secret
+*.pem
+*.key
+
+# Streamlit config / cache
+.streamlit/secrets.toml
+
+# IDE & Editor artifacts
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Operating System files
+.DS_Store
+Thumbs.db
+desktop.ini
