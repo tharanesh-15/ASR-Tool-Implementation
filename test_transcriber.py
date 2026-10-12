@@ -189,6 +189,19 @@ class TestTempAudioLifecycle(unittest.TestCase):
         self.assertIsNotNone(created_path)
         self.assertFalse(created_path.exists(), "Temp file must be removed even when exception occurs")
 
+    def test_cleanup_with_file_like_buffer(self):
+        import io
+        created_path = None
+        buffer = io.BytesIO(b"RIFF....WAVEfmt ....live microphone data")
+
+        with temp_audio_file(buffer, "live_recording.wav") as temp_p:
+            created_path = temp_p
+            self.assertTrue(temp_p.exists(), "Temp audio file should exist for in-memory buffer")
+            self.assertEqual(temp_p.suffix.lower(), ".wav")
+            self.assertGreater(temp_p.stat().st_size, 0)
+
+        self.assertFalse(created_path.exists(), "Temp file must be deleted upon exit")
+
 
 class TestTranscriptionWithMockModel(unittest.TestCase):
     """Tests for transcribe_audio using a mock model."""

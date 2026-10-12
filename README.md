@@ -7,14 +7,15 @@
 ## 🌟 Key Features
 
 - **100% Local & Private Processing**: Audio recordings are processed on your local machine using CTranslate2. No data is ever transmitted to external transcription APIs or remote servers.
+- **🎙️ Live Microphone Recorder**: Record your speech directly inside the web browser using the built-in live audio recorder and convert it into text on the fly.
+- **📁 Multi-Format Audio File Upload**: Supports `.wav`, `.mp3`, `.m4a`, `.mp4`, `.mpeg`, `.webm`, `.ogg`, and `.flac`.
 - **Multiple Whisper Model Tiers**: Seamlessly switch between `tiny`, `base`, `small`, `medium`, and `large-v3` models based on your hardware capabilities and accuracy needs.
-- **Multi-Format Audio Ingestion**: Supports `.wav`, `.mp3`, `.m4a`, `.mp4`, `.mpeg`, `.webm`, `.ogg`, and `.flac`.
 - **Intelligent Language Support**: Choose automatic language detection or specify one of 15+ major languages (including English, Hindi, Spanish, French, German, Japanese, Portuguese, Arabic, and Chinese).
 - **Time-Synchronized Segments**: Review transcripts segmented chronologically with start and end timestamps.
 - **Quality Inspector**: View segment-level confidence scores (average log-probability) and no-speech probabilities.
 - **Single-Click UTF-8 Export**: Download your clean transcript or timestamped subtitles as a standard `.txt` file.
 - **Session-Level Model Caching**: Whisper models are cached in memory via Streamlit's `@st.cache_resource`, avoiding repetitive disk reads during an active session.
-- **Automated Audio Cleanup**: Uploaded audio files are securely removed from disk immediately following processing.
+- **Automated Audio Cleanup**: Uploaded and recorded audio buffers are securely removed from disk immediately following processing.
 
 ---
 
@@ -121,7 +122,9 @@ The Streamlit server will start and open in your default browser at `http://loca
 
 ### Step-by-Step Usage:
 1. **Choose Model & Language**: From the left sidebar, select a Whisper model tier (default: `small`) and desired language (default: `Auto-Detect`).
-2. **Upload Audio**: Drag and drop your audio recording (`.wav`, `.mp3`, `.m4a`, etc.) into the uploader.
+2. **Provide Audio**:
+   - **Option A - Upload Audio**: Drag and drop your audio recording (`.wav`, `.mp3`, `.m4a`, etc.).
+   - **Option B - Live Microphone**: Select **🔴 Live Microphone Recorder**, click the record button, speak into your mic, and click stop.
 3. **Preview**: Verify your audio using the built-in player.
 4. **Transcribe**: Click **🚀 Transcribe Audio**.
 5. **Review & Export**:

@@ -1,6 +1,7 @@
 """
 ClearSpeak - Automatic Speech Recognition (ASR) Web Application
 A polished Streamlit interface for private, local audio transcription using faster-whisper.
+Supports file uploads and live microphone recording.
 """
 
 from __future__ import annotations
@@ -338,35 +339,80 @@ def main() -> None:
     # 2. Get User Configurations from Sidebar
     config = render_sidebar()
 
-    # 3. Audio File Uploader
-    st.markdown("### 1. Upload Audio Recording")
-    supported_extensions_list = [ext.lstrip(".") for ext in sorted(SUPPORTED_AUDIO_EXTENSIONS)]
+    # 3. Audio Input Section (File Upload OR Live Microphone)
+    st.markdown("### 1. Select Audio Input")
 
-    uploaded_file = st.file_uploader(
-        "Choose an audio file",
-        type=supported_extensions_list,
-        help=f"Supported audio formats: {', '.join(supported_extensions_list).upper()}",
+    input_mode = st.radio(
+        "Audio Input Mode",
+        options=["📁 Upload Audio File", "🔴 Live Microphone Recorder"],
+        horizontal=True,
         label_visibility="collapsed",
     )
 
-    if uploaded_file is None:
-        # Guidance state when no audio file is uploaded
-        st.info(
-            "👋 **Welcome!** Upload an audio recording above to begin.\n\n"
-            "- **Supported Formats**: WAV, MP3, M4A, MP4, MPEG, WebM, OGG, FLAC.\n"
-            "- **Privacy**: Audio processing runs entirely on your local CPU or GPU.\n"
-            "- **Recommended**: Use **small** model for the best balance of speed and clarity.",
-            icon="✨",
+    active_audio = None
+    audio_filename = ""
+    audio_source_label = ""
+
+    if input_mode == "📁 Upload Audio File":
+        supported_extensions_list = [ext.lstrip(".") for ext in sorted(SUPPORTED_AUDIO_EXTENSIONS)]
+        uploaded_file = st.file_uploader(
+            "Choose an audio file",
+            type=supported_extensions_list,
+            help=f"Supported audio formats: {', '.join(supported_extensions_list).upper()}",
         )
+        if uploaded_file is not None:
+            active_audio = uploaded_file
+            audio_filename = uploaded_file.name
+            audio_source_label = "Uploaded File"
+
+    else:
+        st.markdown(
+            "<div style='margin-bottom: 8px; color: #cbd5e1; font-size: 0.95rem;'>"
+            "🎙️ <strong>Live Microphone Recording:</strong> Click the red circle to record your voice, "
+            "speak clearly, then click stop when you finish."
+            "</div>",
+            unsafe_allow_html=True,
+        )
+        recorded_audio = st.audio_input("Record audio from microphone")
+        if recorded_audio is not None:
+            active_audio = recorded_audio
+            audio_filename = "live_microphone_recording.wav"
+            audio_source_label = "Live Microphone"
+
+    if active_audio is None:
+        # Guidance state when no audio is present
+        if input_mode == "📁 Upload Audio File":
+            st.info(
+                "👋 **Welcome!** Upload an audio file above or switch to **Live Microphone Recorder**.\n\n"
+                "- **Supported Formats**: WAV, MP3, M4A, MP4, MPEG, WebM, OGG, FLAC.\n"
+                "- **Privacy**: Processing runs entirely on your local machine.",
+                icon="✨",
+            )
+        else:
+            st.info(
+                "🎙️ **Ready to record!** Click the microphone button above to start talking.\n\n"
+                "- Whisper will transcribe your voice locally once you stop recording.\n"
+                "- Works with any connected microphone or headset.",
+                icon="🔴",
+            )
         return
 
     # File information pill
-    file_size_mb = uploaded_file.size / (1024 * 1024)
-    file_suffix = Path(uploaded_file.name).suffix.upper()
+    file_size_bytes = getattr(active_audio, "size", None)
+    if file_size_bytes is None:
+        active_audio.seek(0, 2)
+        file_size_bytes = active_audio.tell()
+        active_audio.seek(0)
+
+    file_size_mb = file_size_bytes / (1024 * 1024)
+    file_suffix = Path(audio_filename).suffix.upper() or ".WAV"
+
     st.markdown(
         f"""
         <div class="file-pill">
-            <span>🎵 <strong>{uploaded_file.name}</strong></span>
+            <span>🎵 <strong>{audio_filename}</strong></span>
+            <span>•</span>
+            <span>Source: <code>{audio_source_label}</code></span>
             <span>•</span>
             <span>Format: <code>{file_suffix}</code></span>
             <span>•</span>
@@ -378,7 +424,7 @@ def main() -> None:
 
     # 4. Audio Player Preview
     with st.expander("🎧 Audio Player Preview", expanded=True):
-        st.audio(uploaded_file)
+        st.audio(active_audio)
 
     st.markdown("### 2. Run Transcription")
 
@@ -403,8 +449,8 @@ def main() -> None:
 
     # Execute Transcription when clicked
     if transcribe_button:
-        if uploaded_file.size == 0:
-            st.error("❌ The uploaded file is empty (0 bytes). Please upload a valid recording.")
+        if file_size_bytes == 0:
+            st.error("❌ The recording or audio file is empty (0 bytes). Please record or upload a valid audio stream.")
             return
 
         progress_placeholder = st.empty()
@@ -423,8 +469,8 @@ def main() -> None:
 
             # Step B: Write temporarily and transcribe
             with progress_placeholder.container():
-                with st.spinner("🎙️ Transcribing audio locally... This may take a few moments depending on audio length."):
-                    with temp_audio_file(uploaded_file, file_name=uploaded_file.name) as temp_path:
+                with st.spinner("🎙️ Transcribing audio locally... This may take a few moments depending on length."):
+                    with temp_audio_file(active_audio, file_name=audio_filename) as temp_path:
                         result = transcribe_audio(
                             model=model,
                             audio_path=temp_path,
@@ -439,7 +485,7 @@ def main() -> None:
 
             # Store result in session state
             st.session_state.latest_result = result
-            st.session_state.result_filename = uploaded_file.name
+            st.session_state.result_filename = audio_filename
             st.session_state.elapsed_time = elapsed_time
 
             st.success(f"✅ Transcription complete in {elapsed_time:.2f}s!")
